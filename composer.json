@@ -1,0 +1,22 @@
+{
+    "name": "engineer-airhead/text-mosaic",
+    "description": "A library to turn text into a mosaic, and back.",
+    "type": "library",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Engineer Airhead",
+            "email": "info@engineer-airhead.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=7.4.0",
+        "ext-gd": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "EngineerAirhead\\TextMosaic\\": "src/"
+        }
+    }
+}
