@@ -22,7 +22,7 @@ class Decoder
                 $y += 5;
             }
 
-            $rgb = imagecolorat($im, $x, $y);
+            $rgb = @imagecolorat($im, $x, $y);
 
             if ($rgb === false) { // Scan position out of bounds
                 break;
