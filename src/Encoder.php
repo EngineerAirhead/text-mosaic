@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace EngineerAirhead\TextMosaic;
 
-class Encoder
+final class Encoder extends Base
 {
-    public function encode(string $data)
+    private int $chunkLength = 3;
+
+    public function encode(string $data): string
     {
         $encoded = base64_encode($data);
 
-        $chunks = str_split($encoded, 3);
+        $chunks = str_split($encoded, $this->chunkLength);
         $chunkSize = count($chunks);
         $imageChunkWidth = ceil(sqrt($chunkSize));
 
-        $blockSize = 5;
+        $imageSize = $imageChunkWidth * self::PIXEL_SIZE;
 
-        $imageSize = $imageChunkWidth * $blockSize;
-
-        $image = $this->createImageResource((int)$imageSize);
+        $this->adapter->createImageFromSize((int)$imageSize);
 
         $column = 0;
         $row = 0;
@@ -26,14 +26,14 @@ class Encoder
         $imageColors = [];
 
         foreach ($chunks as $char) {
-            $padded = str_pad($char, 3, '.');
+            $padded = str_pad($char, $this->chunkLength, '.');
 
             $hex = bin2hex($padded);
 
             if (!array_key_exists($hex, $imageColors)) {
-                list($r, $g, $b) = sscanf(bin2hex($padded), '%02x%02x%02x');
+                $rgb = sscanf(bin2hex($padded), '%02x%02x%02x');
 
-                $imageColors[$hex] = imagecolorallocate($image, $r, $g, $b);
+                $imageColors[$hex] = $this->adapter->imageColorAllocate(...$rgb);
             }
 
             $squareColor = $imageColors[$hex];
@@ -43,39 +43,24 @@ class Encoder
                 $row++;
             }
 
-            $x1 = $column * $blockSize;
-            $y1 = $row * $blockSize;
-            $x2 = $x1 + ($blockSize - 1);
-            $y2 = $y1 + ($blockSize - 1);
+            $x1 = $column * self::PIXEL_SIZE;
+            $y1 = $row * self::PIXEL_SIZE;
+            $x2 = $x1 + (self::PIXEL_SIZE - 1);
+            $y2 = $y1 + (self::PIXEL_SIZE - 1);
 
-            imagefilledrectangle($image, $x1, $y1, $x2, $y2, $squareColor);
+            $this->adapter->addSquareToImage($x1, $y1, $x2, $y2, $squareColor);
 
             $column++;
         }
 
         $stream = fopen('php://memory', 'w+');
 
-        imagepng($image, $stream);
+        $this->adapter->streamImage($stream);
 
         rewind($stream);
 
         $encodedImage = stream_get_contents($stream);
 
         return base64_encode($encodedImage);
-    }
-
-    /**
-     * @param int $size
-     * @return false|\GdImage|resource
-     */
-    private function createImageResource(int $size)
-    {
-        $image = imagecreatetruecolor($size, $size);
-
-        imagesavealpha($image, true);
-        $color = imagecolorallocatealpha($image, 0, 0, 0, 127);
-        imagefill($image, 0, 0, $color);
-
-        return $image;
     }
 }

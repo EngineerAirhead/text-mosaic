@@ -4,31 +4,31 @@ declare(strict_types=1);
 
 namespace EngineerAirhead\TextMosaic;
 
-class Decoder
+final class Decoder extends Base
 {
     public function decode($imagePath): string
     {
-        $imageWidth = getimagesize($imagePath)[0];
+        $this->adapter->createImageFromSquare($imagePath);
 
-        $im = imagecreatefrompng($imagePath);
+        $imageWidth = getimagesize($imagePath)[0];
 
         $string = '';
 
-        $x = $y = 2;
+        $x = $y = self::PIXEL_HALFWAY_POINT;
 
         while (true) {
             if ($x > $imageWidth) {
-                $x = 2;
-                $y += 5;
+                $x = self::PIXEL_HALFWAY_POINT;
+                $y += self::PIXEL_SIZE;
             }
 
-            $rgb = @imagecolorat($im, $x, $y);
+            $rgb = $this->adapter->imageColorAt($x, $y);
 
             if ($rgb === false) { // Scan position out of bounds
                 break;
             }
 
-            $colors = imagecolorsforindex($im, $rgb);
+            $colors = $this->adapter->imageColorForIndex($rgb);
 
             if ($colors['alpha'] > 0) {
                 break;
@@ -38,7 +38,7 @@ class Decoder
 
             $string .= hex2bin($hex);
 
-            $x += 5;
+            $x += self::PIXEL_SIZE;
         }
 
         return base64_decode($string);
