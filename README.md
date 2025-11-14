@@ -20,18 +20,19 @@ When encoding text to an image, you load the Encoder and provide the text you wa
 The encoder will return a base64 representation of the image that you can then use in your webpage;
 
 ```php
+use EngineerAirhead\TextMosaic\Adapter\GD;
 use EngineerAirhead\TextMosaic\Encoder;
 
 $message = 'This is a nice example :D';
 
-$encode = (new Encoder())->encode($message);
+$encode = (new Encoder(new GD()))->encode($message);
 
 echo $message . '<br />';
 
 echo '<img src="data:image/png;base64,' . $encode . '">';
 ```
 
-Result:
+Result: ![This is a nice example :D](/img/example.png)
 
 ```html
 This is a nice example :D<br />
@@ -43,9 +44,10 @@ Obviously, all images created with this library can also be decoded back to thei
 Load the decoder and give it an image path, and it will return the textual version back to you.:
 
 ```php
+use EngineerAirhead\TextMosaic\Adapter\GD;
 use EngineerAirhead\TextMosaic\Decoder;
 
-echo (new Decoder())->decode('img/example.png');
+echo (new Decoder(new GD()))->decode('img/example.png');
 ```
 
 Result:
